@@ -21,11 +21,24 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
-      const voiceOptions = availableVoices.map(voice => ({
-        voice: voice,
-        languageCode: voice.lang,
-        languageName: new Intl.DisplayNames([navigator.language], { type: 'language' }).of(voice.lang.split('-')[0]) || voice.lang
-      }));
+      const voiceOptions = availableVoices.map(voice => {
+        let languageName = voice.lang;
+        try {
+          const langCode = voice.lang.split('-')[0];
+          const displayNames = new Intl.DisplayNames([navigator.language], { type: 'language' });
+          languageName = displayNames.of(langCode) || voice.lang;
+        } catch (error) {
+          console.log('Error getting language name:', error);
+          // Fallback to using the original language code
+          languageName = voice.lang;
+        }
+        
+        return {
+          voice: voice,
+          languageCode: voice.lang,
+          languageName: languageName
+        };
+      });
       
       setVoices(voiceOptions);
       
