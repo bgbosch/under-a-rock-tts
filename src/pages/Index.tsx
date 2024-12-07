@@ -63,7 +63,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-blue-900 text-center mb-8">
-          Offline Text-to-Speech Reader
+          Under a Rock - Text to Speech
         </h1>
         
         <FileUpload onFileSelect={handleFileSelect} />
@@ -102,7 +102,7 @@ const Index = () => {
         )}
         
         <footer className="mt-8 text-center text-sm text-gray-500">
-          Works completely offline with your system's text-to-speech voices
+          bgbosch 2024
         </footer>
       </div>
     </div>
