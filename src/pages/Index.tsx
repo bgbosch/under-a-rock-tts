@@ -48,7 +48,7 @@ const Index = () => {
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  const handleDownloadAll = () => {
+  const handleDownloadSRT = () => {
     const content = clips.map(clip => {
       return `${clip.id}\n${clip.startTime || "00:00:00,000"} --> ${clip.endTime || "00:00:00,000"}\n${clip.text}\n\n`;
     }).join('');
@@ -57,7 +57,20 @@ const Index = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName.toLowerCase().endsWith('.srt') ? fileName : fileName.replace(/\.txt$/, '.srt');
+    a.download = fileName.replace(/\.[^/.]+$/, '') + '.srt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadTXT = () => {
+    const content = clips.map(clip => clip.text).join('\n\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName.replace(/\.[^/.]+$/, '') + '.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -81,13 +94,22 @@ const Index = () => {
               <h2 className="text-xl font-semibold text-blue-900">
                 Text Clips
               </h2>
-              <Button
-                variant="outline"
-                onClick={handleDownloadAll}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download All
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadTXT}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download TXT
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadSRT}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download SRT
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-4">
