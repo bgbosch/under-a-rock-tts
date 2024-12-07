@@ -46,23 +46,20 @@ const ClipEditor = ({
   };
 
   const handleDownloadAudio = async () => {
-    return new Promise((resolve) => {
-      // Create and configure utterance
-      const utterance = new SpeechSynthesisUtterance(text);
+    try {
+      // Create an audio context and destination node
+      const audioContext = new AudioContext();
+      const destination = audioContext.createMediaStreamDestination();
       
-      // Get the stored voice preference
-      const selectedVoiceName = sessionStorage.getItem('selectedVoice');
-      if (selectedVoiceName) {
-        const voices = window.speechSynthesis.getVoices();
-        const voice = voices.find(v => v.name === selectedVoiceName);
-        if (voice) utterance.voice = voice;
-      }
-
-      // Create an audio element to play and capture the speech
-      const audio = new Audio();
-      const mediaRecorder = new MediaRecorder(new MediaStream());
+      // Create an oscillator node (this will be our audio source)
+      const oscillator = audioContext.createOscillator();
+      oscillator.connect(destination);
+      
+      // Create media recorder with the destination stream
+      const mediaRecorder = new MediaRecorder(destination.stream);
       const audioChunks: BlobPart[] = [];
 
+      // Set up media recorder event handlers
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunks.push(event.data);
@@ -79,20 +76,35 @@ const ClipEditor = ({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        resolve(true);
+        audioContext.close();
       };
 
       // Start recording
       mediaRecorder.start();
 
-      // Speak the text
+      // Create and configure utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Get the stored voice preference
+      const selectedVoiceName = sessionStorage.getItem('selectedVoice');
+      if (selectedVoiceName) {
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === selectedVoiceName);
+        if (voice) utterance.voice = voice;
+      }
+
+      // Start oscillator and speak
+      oscillator.start();
       window.speechSynthesis.speak(utterance);
 
       // Stop recording when speech ends
       utterance.onend = () => {
+        oscillator.stop();
         mediaRecorder.stop();
       };
-    });
+    } catch (error) {
+      console.error('Error during audio download:', error);
+    }
   };
 
   const handleDownloadText = () => {
