@@ -24,12 +24,25 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
       const voiceOptions = availableVoices.map(voice => {
         let languageName = voice.lang;
         try {
-          const langCode = voice.lang.split('-')[0];
-          const displayNames = new Intl.DisplayNames([navigator.language], { type: 'language' });
-          languageName = displayNames.of(langCode) || voice.lang;
+          // Get full language name including country
+          const displayNames = new Intl.DisplayNames([navigator.language], { 
+            type: 'language',
+            style: 'long',
+            languageDisplay: 'standard'
+          });
+          
+          const [langCode, countryCode] = voice.lang.split('-');
+          const baseLangName = displayNames.of(langCode) || langCode;
+          
+          if (countryCode) {
+            const regionNames = new Intl.DisplayNames([navigator.language], { type: 'region' });
+            const countryName = regionNames.of(countryCode);
+            languageName = `${baseLangName} (${countryName})`;
+          } else {
+            languageName = baseLangName;
+          }
         } catch (error) {
           console.log('Error getting language name:', error);
-          // Fallback to using the original language code
           languageName = voice.lang;
         }
         
@@ -42,7 +55,7 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
       
       setVoices(voiceOptions);
       
-      if (voiceOptions.length > 0) {
+      if (voiceOptions.length > 0 && !selectedVoice) {
         setSelectedVoice(voiceOptions[0].voice.name);
         setSelectedLanguage(voiceOptions[0].languageCode);
       }
@@ -54,14 +67,18 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, []);
+  }, [selectedVoice]);
 
   const speak = () => {
     if (!text) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     const voice = voices.find(v => v.voice.name === selectedVoice)?.voice;
-    if (voice) utterance.voice = voice;
+    if (voice) {
+      utterance.voice = voice;
+      // Store the selected voice in sessionStorage
+      sessionStorage.setItem('selectedVoice', voice.name);
+    }
 
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);

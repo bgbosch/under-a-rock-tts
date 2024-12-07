@@ -47,15 +47,29 @@ const ClipEditor = ({
 
   const handleDownloadAudio = async () => {
     const utterance = new SpeechSynthesisUtterance(text);
-    const audioContext = new AudioContext();
-    const mediaStreamDest = audioContext.createMediaStreamDestination();
     
-    // Create a MediaRecorder to capture the audio
-    const mediaRecorder = new MediaRecorder(mediaStreamDest.stream);
+    // Get the stored voice preference
+    const selectedVoiceName = sessionStorage.getItem('selectedVoice');
+    if (selectedVoiceName) {
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find(v => v.name === selectedVoiceName);
+      if (voice) utterance.voice = voice;
+    }
+
+    // Create an audio context
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const mediaStreamDestination = audioContext.createMediaStreamDestination();
+    
+    // Create a MediaRecorder
+    const mediaRecorder = new MediaRecorder(mediaStreamDestination.stream);
     const audioChunks: BlobPart[] = [];
 
+    // Set up event handlers
     mediaRecorder.ondataavailable = (event) => {
-      audioChunks.push(event.data);
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
     };
 
     mediaRecorder.onstop = () => {
@@ -70,10 +84,17 @@ const ClipEditor = ({
       URL.revokeObjectURL(url);
     };
 
+    // Start recording
     mediaRecorder.start();
+    oscillator.connect(mediaStreamDestination);
+    oscillator.start();
+
+    // Speak the text
     window.speechSynthesis.speak(utterance);
 
+    // Stop recording when speech ends
     utterance.onend = () => {
+      oscillator.stop();
       mediaRecorder.stop();
       audioContext.close();
     };
