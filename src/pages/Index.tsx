@@ -34,6 +34,14 @@ const Index = () => {
     );
   };
 
+  const handleClipTimeChange = (id: string, startTime: string, endTime: string) => {
+    setClips(prevClips =>
+      prevClips.map(clip =>
+        clip.id === id ? { ...clip, startTime, endTime } : clip
+      )
+    );
+  };
+
   const handlePlayClip = useCallback((text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.cancel();
@@ -42,17 +50,14 @@ const Index = () => {
 
   const handleDownloadAll = () => {
     const content = clips.map(clip => {
-      if (clip.startTime && clip.endTime) {
-        return `${clip.id}\n${clip.startTime} --> ${clip.endTime}\n${clip.text}\n\n`;
-      }
-      return `${clip.text}\n\n`;
+      return `${clip.id}\n${clip.startTime || "00:00:00,000"} --> ${clip.endTime || "00:00:00,000"}\n${clip.text}\n\n`;
     }).join('');
 
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `all_clips_${fileName}`;
+    a.download = fileName.toLowerCase().endsWith('.srt') ? fileName : fileName.replace(/\.txt$/, '.srt');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -94,6 +99,7 @@ const Index = () => {
                   startTime={clip.startTime}
                   endTime={clip.endTime}
                   onTextChange={handleClipTextChange}
+                  onTimeChange={handleClipTimeChange}
                   onPlay={handlePlayClip}
                 />
               ))}

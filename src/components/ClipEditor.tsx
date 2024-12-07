@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Download } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Play, Download, FileText } from 'lucide-react';
 
 interface ClipEditorProps {
   id: string;
@@ -9,18 +10,22 @@ interface ClipEditorProps {
   startTime?: string;
   endTime?: string;
   onTextChange: (id: string, newText: string) => void;
+  onTimeChange: (id: string, startTime: string, endTime: string) => void;
   onPlay: (text: string) => void;
 }
 
 const ClipEditor = ({
   id,
   initialText,
-  startTime,
-  endTime,
+  startTime = "00:00:00,000",
+  endTime = "00:00:00,000",
   onTextChange,
+  onTimeChange,
   onPlay,
 }: ClipEditorProps) => {
   const [text, setText] = useState(initialText);
+  const [currentStartTime, setCurrentStartTime] = useState(startTime);
+  const [currentEndTime, setCurrentEndTime] = useState(endTime);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -28,12 +33,59 @@ const ClipEditor = ({
     onTextChange(id, newText);
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([text], { type: 'text/plain' });
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = e.target.value;
+    setCurrentStartTime(newTime);
+    onTimeChange(id, newTime, currentEndTime);
+  };
+
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = e.target.value;
+    setCurrentEndTime(newTime);
+    onTimeChange(id, currentStartTime, newTime);
+  };
+
+  const handleDownloadAudio = async () => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    const audioContext = new AudioContext();
+    const mediaStreamDest = audioContext.createMediaStreamDestination();
+    
+    // Create a MediaRecorder to capture the audio
+    const mediaRecorder = new MediaRecorder(mediaStreamDest.stream);
+    const audioChunks: BlobPart[] = [];
+
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clip_${id}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    mediaRecorder.start();
+    window.speechSynthesis.speak(utterance);
+
+    utterance.onend = () => {
+      mediaRecorder.stop();
+      audioContext.close();
+    };
+  };
+
+  const handleDownloadText = () => {
+    const content = `${id}\n${currentStartTime} --> ${currentEndTime}\n${text}\n\n`;
+    const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `clip_${id}.txt`;
+    a.download = `clip_${id}.srt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -42,11 +94,28 @@ const ClipEditor = ({
 
   return (
     <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm">
-      {(startTime || endTime) && (
-        <div className="text-sm text-gray-500 mb-2">
-          {startTime} → {endTime}
+      <div className="grid grid-cols-2 gap-4 mb-3">
+        <div>
+          <label className="text-sm text-gray-500">Start Time</label>
+          <Input
+            type="text"
+            value={currentStartTime}
+            onChange={handleStartTimeChange}
+            placeholder="00:00:00,000"
+            className="mt-1"
+          />
         </div>
-      )}
+        <div>
+          <label className="text-sm text-gray-500">End Time</label>
+          <Input
+            type="text"
+            value={currentEndTime}
+            onChange={handleEndTimeChange}
+            placeholder="00:00:00,000"
+            className="mt-1"
+          />
+        </div>
+      </div>
       <Textarea
         value={text}
         onChange={handleTextChange}
@@ -65,10 +134,18 @@ const ClipEditor = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={handleDownload}
+          onClick={handleDownloadAudio}
         >
           <Download className="w-4 h-4 mr-2" />
-          Download
+          Download Audio
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownloadText}
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          Download Text
         </Button>
       </div>
     </div>

@@ -24,8 +24,8 @@ const parseSRT = (content: string): TextClip[] => {
     return {
       id,
       text,
-      startTime: timeMatch?.[1],
-      endTime: timeMatch?.[2],
+      startTime: timeMatch?.[1] || "00:00:00,000",
+      endTime: timeMatch?.[2] || "00:00:00,000",
     };
   });
 };
@@ -35,5 +35,7 @@ const parseTXT = (content: string): TextClip[] => {
   return paragraphs.map((text, index) => ({
     id: String(index + 1),
     text: text.trim(),
+    startTime: "00:00:00,000",
+    endTime: "00:00:00,000",
   }));
 };
