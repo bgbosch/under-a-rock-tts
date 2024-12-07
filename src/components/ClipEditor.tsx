@@ -47,19 +47,28 @@ const ClipEditor = ({
 
   const handleDownloadAudio = async () => {
     try {
-      // Create an audio context and destination node
+      // Create an utterance with the text
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Get the stored voice preference
+      const selectedVoiceName = sessionStorage.getItem('selectedVoice');
+      if (selectedVoiceName) {
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === selectedVoiceName);
+        if (voice) utterance.voice = voice;
+      }
+
+      // Create audio context and media stream
       const audioContext = new AudioContext();
-      const destination = audioContext.createMediaStreamDestination();
-      
-      // Create an oscillator node (this will be our audio source)
-      const oscillator = audioContext.createOscillator();
-      oscillator.connect(destination);
-      
-      // Create media recorder with the destination stream
-      const mediaRecorder = new MediaRecorder(destination.stream);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      const mediaStreamDestination = audioContext.createMediaStreamDestination();
+      mediaStreamSource.connect(mediaStreamDestination);
+
+      // Create media recorder
+      const mediaRecorder = new MediaRecorder(mediaStreamDestination.stream);
       const audioChunks: BlobPart[] = [];
 
-      // Set up media recorder event handlers
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunks.push(event.data);
@@ -77,29 +86,15 @@ const ClipEditor = ({
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         audioContext.close();
+        mediaStream.getTracks().forEach(track => track.stop());
       };
 
-      // Start recording
+      // Start recording and speak
       mediaRecorder.start();
-
-      // Create and configure utterance
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Get the stored voice preference
-      const selectedVoiceName = sessionStorage.getItem('selectedVoice');
-      if (selectedVoiceName) {
-        const voices = window.speechSynthesis.getVoices();
-        const voice = voices.find(v => v.name === selectedVoiceName);
-        if (voice) utterance.voice = voice;
-      }
-
-      // Start oscillator and speak
-      oscillator.start();
       window.speechSynthesis.speak(utterance);
 
       // Stop recording when speech ends
       utterance.onend = () => {
-        oscillator.stop();
         mediaRecorder.stop();
       };
     } catch (error) {
