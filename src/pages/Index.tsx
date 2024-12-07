@@ -44,6 +44,12 @@ const Index = () => {
 
   const handlePlayClip = useCallback((text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
+    const selectedVoiceName = sessionStorage.getItem('selectedVoice');
+    if (selectedVoiceName) {
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find(v => v.name === selectedVoiceName);
+      if (voice) utterance.voice = voice;
+    }
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   }, []);
