@@ -24,7 +24,6 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
       const voiceOptions = availableVoices.map(voice => {
         let languageName = voice.lang;
         try {
-          // Get full language name including country
           const displayNames = new Intl.DisplayNames([navigator.language], { 
             type: 'language',
             style: 'long',
@@ -55,9 +54,27 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
       
       setVoices(voiceOptions);
       
-      if (voiceOptions.length > 0 && !selectedVoice) {
-        setSelectedVoice(voiceOptions[0].voice.name);
-        setSelectedLanguage(voiceOptions[0].languageCode);
+      // Get the last used voice from localStorage
+      const lastUsedVoice = localStorage.getItem('selectedVoice');
+      const lastUsedLanguage = localStorage.getItem('selectedLanguage');
+      
+      // If there's a last used voice and it's available, use it
+      if (lastUsedVoice && voiceOptions.some(v => v.voice.name === lastUsedVoice)) {
+        setSelectedVoice(lastUsedVoice);
+        if (lastUsedLanguage) {
+          setSelectedLanguage(lastUsedLanguage);
+        }
+      } else {
+        // Otherwise, try to use browser's default voice
+        const defaultVoice = availableVoices.find(voice => voice.default);
+        if (defaultVoice) {
+          setSelectedVoice(defaultVoice.name);
+          setSelectedLanguage(defaultVoice.lang);
+        } else if (voiceOptions.length > 0) {
+          // Fallback to first available voice
+          setSelectedVoice(voiceOptions[0].voice.name);
+          setSelectedLanguage(voiceOptions[0].languageCode);
+        }
       }
     };
 
@@ -67,7 +84,7 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [selectedVoice]);
+  }, []);
 
   const speak = () => {
     if (!text) return;
@@ -76,8 +93,9 @@ const SpeechControls = ({ text, isTextLoaded }: SpeechControlsProps) => {
     const voice = voices.find(v => v.voice.name === selectedVoice)?.voice;
     if (voice) {
       utterance.voice = voice;
-      // Store the selected voice in sessionStorage
-      sessionStorage.setItem('selectedVoice', voice.name);
+      // Store the selected voice in localStorage
+      localStorage.setItem('selectedVoice', voice.name);
+      localStorage.setItem('selectedLanguage', voice.lang);
     }
 
     utterance.onend = () => setIsPlaying(false);

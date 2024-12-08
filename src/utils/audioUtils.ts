@@ -1,6 +1,6 @@
 export const handleSpeechSynthesis = (text: string) => {
   const utterance = new SpeechSynthesisUtterance(text);
-  const selectedVoiceName = sessionStorage.getItem('selectedVoice');
+  const selectedVoiceName = localStorage.getItem('selectedVoice');
   if (selectedVoiceName) {
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => v.name === selectedVoiceName);
