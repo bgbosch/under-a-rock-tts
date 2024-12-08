@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import TimeInputs from './TimeInputs';
 import ClipActions from './ClipActions';
-import { handleSpeechSynthesis, downloadTextFile } from '@/utils/audioUtils';
-import { toast } from "@/components/ui/use-toast";
 
 interface ClipEditorProps {
   id: string;
@@ -44,19 +42,6 @@ const ClipEditor = ({
     onTimeChange(id, currentStartTime, newTime);
   };
 
-  const handleDownloadAudio = async () => {
-    toast({
-      title: "Browser Limitation",
-      description: "Due to browser restrictions, we cannot directly save the speech audio to a WAV file. To capture the audio, please use a system audio recorder (like Audacity or Adobe Audition) while playing the speech.",
-      duration: 5000,
-    });
-  };
-
-  const handleDownloadText = () => {
-    const content = `${id}\n${currentStartTime} --> ${currentEndTime}\n${text}\n\n`;
-    downloadTextFile(content, `clip_${id}.srt`);
-  };
-
   return (
     <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm">
       <TimeInputs
@@ -73,8 +58,6 @@ const ClipEditor = ({
       />
       <ClipActions
         onPlay={() => onPlay(text)}
-        onDownloadAudio={handleDownloadAudio}
-        onDownloadText={handleDownloadText}
       />
     </div>
   );
