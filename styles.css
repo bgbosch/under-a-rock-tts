@@ -10,14 +10,34 @@ body {
     width: 80%;
     margin: auto;
     overflow: hidden;
+    padding: 20px;
 }
 
 h1 {
     color: #333;
+    text-align: center;
+    margin-bottom: 30px;
 }
 
-h2 {
-    color: #555;
+/* Voice selector styles */
+.voice-selector {
+    margin-bottom: 20px;
+}
+
+.voice-selector select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* File input styles */
+#fileInput {
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
 }
 
 /* Clip editor styles */
@@ -41,18 +61,39 @@ h2 {
     margin-right: 10px;
 }
 
+.time-input:last-child {
+    margin-right: 0;
+}
+
 .time-input label {
     display: block;
     margin-bottom: 5px;
+    color: #666;
+}
+
+.time-input input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 textarea {
     width: 100%;
     height: 100px;
     margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
 }
 
 /* Button styles */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
 .outline-button {
     background: none;
     border: 1px solid #007bff;
@@ -66,6 +107,27 @@ textarea {
 .outline-button:hover {
     background: #007bff;
     color: white;
+}
+
+.play {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.play:hover {
+    background: #45a049;
+}
+
+/* Global actions styles */
+.global-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
 }
 
 /* Play All button styles */
