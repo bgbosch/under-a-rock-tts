@@ -60,6 +60,7 @@
         .actions {
             display: flex;
             gap: 0.5rem;
+            justify-content: flex-end;
         }
 
         button {
@@ -70,6 +71,9 @@
             border-radius: 0.25rem;
             cursor: pointer;
             transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         button:hover {
@@ -91,6 +95,19 @@
         input[type="file"] {
             margin-bottom: 1rem;
         }
+
+        .global-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
+
+        .outline-button {
+            background-color: white;
+            color: hsl(var(--primary));
+            border: 1px solid currentColor;
+        }
     </style>
 </head>
 <body>
@@ -105,6 +122,11 @@
         <input type="file" id="fileInput" accept=".txt,.srt" />
         
         <div id="clips-container"></div>
+
+        <div class="global-actions">
+            <button onclick="downloadTXT()" class="outline-button">Download TXT</button>
+            <button onclick="downloadSRT()" class="outline-button">Download SRT</button>
+        </div>
     </div>
 
     <script>
@@ -144,7 +166,7 @@
             }));
         };
 
-        // Audio utilities
+        // Speech synthesis utilities
         const handleSpeechSynthesis = (text) => {
             const utterance = new SpeechSynthesisUtterance(text);
             const selectedVoiceName = document.getElementById('voice').value;
@@ -154,17 +176,7 @@
             return utterance;
         };
 
-        const downloadAudioFile = async (audioBlob, fileName) => {
-            const url = URL.createObjectURL(audioBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        };
-
+        // Download utilities
         const downloadTextFile = (content, fileName) => {
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -175,6 +187,21 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        };
+
+        // Global download functions
+        let currentClips = [];
+
+        const downloadTXT = () => {
+            const content = currentClips.map(clip => clip.text).join('\n\n');
+            downloadTextFile(content, 'script.txt');
+        };
+
+        const downloadSRT = () => {
+            const content = currentClips.map(clip => (
+                `${clip.id}\n${clip.startTime} --> ${clip.endTime}\n${clip.text}\n\n`
+            )).join('');
+            downloadTextFile(content, 'script.srt');
         };
 
         // Create clip editor HTML
@@ -194,71 +221,17 @@
                 </div>
                 <textarea>${clip.text}</textarea>
                 <div class="actions">
-                    <button class="play">Play</button>
-                    <button class="download-audio">Download Audio</button>
-                    <button class="download-text">Download Text</button>
+                    <button class="play">▶ Play</button>
                 </div>
             `;
 
             // Add event listeners
             const textarea = clipEditor.querySelector('textarea');
             const playButton = clipEditor.querySelector('.play');
-            const downloadAudioButton = clipEditor.querySelector('.download-audio');
-            const downloadTextButton = clipEditor.querySelector('.download-text');
 
             playButton.addEventListener('click', () => {
                 const utterance = handleSpeechSynthesis(textarea.value);
                 window.speechSynthesis.speak(utterance);
-            });
-
-            downloadAudioButton.addEventListener('click', async () => {
-                try {
-                    const audioContext = new AudioContext();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    gainNode.gain.value = 0;
-                    
-                    const destination = audioContext.createMediaStreamDestination();
-                    gainNode.connect(destination);
-                    
-                    const mediaRecorder = new MediaRecorder(destination.stream);
-                    const audioChunks = [];
-
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            audioChunks.push(event.data);
-                        }
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        downloadAudioFile(audioBlob, `clip_${clip.id}.wav`);
-                        audioContext.close();
-                    };
-
-                    mediaRecorder.start();
-                    oscillator.start();
-
-                    const utterance = handleSpeechSynthesis(textarea.value);
-                    window.speechSynthesis.speak(utterance);
-
-                    utterance.onend = () => {
-                        oscillator.stop();
-                        mediaRecorder.stop();
-                    };
-                } catch (error) {
-                    console.error('Error during audio download:', error);
-                }
-            });
-
-            downloadTextButton.addEventListener('click', () => {
-                const startTime = clipEditor.querySelector('.start-time').value;
-                const endTime = clipEditor.querySelector('.end-time').value;
-                const content = `${clip.id}\n${startTime} --> ${endTime}\n${textarea.value}\n\n`;
-                downloadTextFile(content, `clip_${clip.id}.srt`);
             });
 
             return clipEditor;
@@ -286,12 +259,12 @@
             if (!file) return;
 
             const content = await file.text();
-            const clips = parseContent(content, file.name);
+            currentClips = parseContent(content, file.name);
             
             const container = document.getElementById('clips-container');
             container.innerHTML = '';
             
-            clips.forEach(clip => {
+            currentClips.forEach(clip => {
                 container.appendChild(createClipEditor(clip));
             });
         });
