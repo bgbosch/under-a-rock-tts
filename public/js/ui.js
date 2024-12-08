@@ -28,3 +28,31 @@ const createClipEditor = (clip) => {
 
     return clipEditor;
 };
+
+const createPlayAllButton = () => {
+    const button = document.createElement('button');
+    button.className = 'outline-button play-all';
+    button.textContent = '▶ Play All';
+    button.onclick = playAllClips;
+    return button;
+};
+
+const playAllClips = () => {
+    const clips = getCurrentClipsState();
+    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+
+    let currentIndex = 0;
+    
+    const speakNext = () => {
+        if (currentIndex < clips.length) {
+            const utterance = handleSpeechSynthesis(clips[currentIndex].text);
+            utterance.onend = () => {
+                currentIndex++;
+                speakNext();
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    speakNext();
+};

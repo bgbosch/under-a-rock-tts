@@ -20,4 +20,10 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
     currentClips.forEach(clip => {
         container.appendChild(createClipEditor(clip));
     });
+
+    // Add Play All button if it doesn't exist
+    const globalActions = document.querySelector('.global-actions');
+    if (!globalActions.querySelector('.play-all')) {
+        globalActions.insertBefore(createPlayAllButton(), globalActions.firstChild);
+    }
 });

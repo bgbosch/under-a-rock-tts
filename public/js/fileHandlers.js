@@ -12,13 +12,27 @@ const downloadTextFile = (content, fileName) => {
 
 let currentClips = [];
 
+const getCurrentClipsState = () => {
+    const clipsContainer = document.getElementById('clips-container');
+    const clipEditors = clipsContainer.querySelectorAll('.clip-editor');
+    
+    return Array.from(clipEditors).map((editor, index) => ({
+        id: String(index + 1),
+        text: editor.querySelector('textarea').value,
+        startTime: editor.querySelector('.start-time').value,
+        endTime: editor.querySelector('.end-time').value
+    }));
+};
+
 const downloadTXT = () => {
-    const content = currentClips.map(clip => clip.text).join('\n\n');
+    const clips = getCurrentClipsState();
+    const content = clips.map(clip => clip.text).join('\n\n');
     downloadTextFile(content, 'script.txt');
 };
 
 const downloadSRT = () => {
-    const content = currentClips.map(clip => (
+    const clips = getCurrentClipsState();
+    const content = clips.map(clip => (
         `${clip.id}\n${clip.startTime} --> ${clip.endTime}\n${clip.text}\n\n`
     )).join('');
     downloadTextFile(content, 'script.srt');
