@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import TimeInputs from './TimeInputs';
 import ClipActions from './ClipActions';
-import { handleSpeechSynthesis, downloadAudioFile, downloadTextFile } from '@/utils/audioUtils';
+import { handleSpeechSynthesis, downloadTextFile } from '@/utils/audioUtils';
+import { toast } from "@/components/ui/use-toast";
 
 interface ClipEditorProps {
   id: string;
@@ -44,46 +45,11 @@ const ClipEditor = ({
   };
 
   const handleDownloadAudio = async () => {
-    try {
-      const audioContext = new AudioContext();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      gainNode.gain.value = 0;
-      
-      const destination = audioContext.createMediaStreamDestination();
-      gainNode.connect(destination);
-      
-      const mediaRecorder = new MediaRecorder(destination.stream);
-      const audioChunks: BlobPart[] = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        downloadAudioFile(audioBlob, `clip_${id}.wav`);
-        audioContext.close();
-      };
-
-      mediaRecorder.start();
-      oscillator.start();
-
-      const utterance = handleSpeechSynthesis(text);
-      window.speechSynthesis.speak(utterance);
-
-      utterance.onend = () => {
-        oscillator.stop();
-        mediaRecorder.stop();
-      };
-    } catch (error) {
-      console.error('Error during audio download:', error);
-    }
+    toast({
+      title: "Browser Limitation",
+      description: "Due to browser restrictions, we cannot directly save the speech audio to a WAV file. To capture the audio, please use a system audio recorder (like Audacity or Adobe Audition) while playing the speech.",
+      duration: 5000,
+    });
   };
 
   const handleDownloadText = () => {

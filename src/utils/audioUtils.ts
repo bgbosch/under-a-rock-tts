@@ -9,17 +9,6 @@ export const handleSpeechSynthesis = (text: string) => {
   return utterance;
 };
 
-export const downloadAudioFile = async (audioBlob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(audioBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
-
 export const downloadTextFile = (content: string, fileName: string) => {
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
