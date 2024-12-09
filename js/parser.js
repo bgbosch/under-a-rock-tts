@@ -7,10 +7,12 @@ const parseContent = (content, fileName) => {
 };
 
 const parseSRT = (content) => {
-    // Normalize line endings to \n
-    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    // First normalize all line endings to \n
+    const normalizedContent = content
+        .replace(/\r\n/g, '\n')  // Convert CRLF to LF
+        .replace(/\r/g, '\n');   // Convert remaining CR to LF
     
-    // Split into blocks, handling both double line breaks
+    // Split into blocks using normalized line endings
     const blocks = normalizedContent.split(/\n\n+/);
     
     return blocks.map((block) => {
@@ -35,7 +37,10 @@ const parseSRT = (content) => {
 
 const parseTXT = (content) => {
     // Normalize line endings for TXT files as well
-    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const normalizedContent = content
+        .replace(/\r\n/g, '\n')  // Convert CRLF to LF
+        .replace(/\r/g, '\n');   // Convert remaining CR to LF
+    
     const paragraphs = normalizedContent.split(/\n\s*\n/);
     return paragraphs.map((text, index) => ({
         id: String(index + 1),
