@@ -7,24 +7,36 @@ const parseContent = (content, fileName) => {
 };
 
 const parseSRT = (content) => {
-    const blocks = content.trim().split('\n\n');
+    // Normalize line endings to \n
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Split into blocks, handling both double line breaks
+    const blocks = normalizedContent.split(/\n\n+/);
+    
     return blocks.map((block) => {
-        const lines = block.split('\n');
+        // Split block into lines, filtering out empty lines
+        const lines = block.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return null; // Skip invalid blocks
+        
         const id = lines[0];
         const timeMatch = lines[1]?.match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
         const text = lines.slice(2).join('\n');
 
+        if (!timeMatch) return null; // Skip blocks with invalid time format
+
         return {
             id,
             text,
-            startTime: timeMatch?.[1] || "00:00:00,000",
-            endTime: timeMatch?.[2] || "00:00:00,000",
+            startTime: timeMatch[1],
+            endTime: timeMatch[2],
         };
-    });
+    }).filter(Boolean); // Remove null entries
 };
 
 const parseTXT = (content) => {
-    const paragraphs = content.split(/\n\s*\n/);
+    // Normalize line endings for TXT files as well
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const paragraphs = normalizedContent.split(/\n\s*\n/);
     return paragraphs.map((text, index) => ({
         id: String(index + 1),
         text: text.trim(),
