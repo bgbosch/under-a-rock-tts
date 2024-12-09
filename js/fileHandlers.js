@@ -11,6 +11,7 @@ const downloadTextFile = (content, fileName) => {
 };
 
 let currentClips = [];
+let originalFileName = ''; // Store the original filename
 
 const getCurrentClipsState = () => {
     const clipsContainer = document.getElementById('clips-container');
@@ -24,10 +25,28 @@ const getCurrentClipsState = () => {
     }));
 };
 
+// Update main.js event listener to store the filename
+document.getElementById('fileInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    originalFileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+    const content = await file.text();
+    currentClips = parseContent(content, file.name);
+    
+    const container = document.getElementById('clips-container');
+    container.innerHTML = '';
+    
+    currentClips.forEach(clip => {
+        container.appendChild(createClipEditor(clip));
+    });
+});
+
 const downloadTXT = () => {
     const clips = getCurrentClipsState();
     const content = clips.map(clip => clip.text).join('\n\n');
-    downloadTextFile(content, 'script.txt');
+    const fileName = originalFileName ? `${originalFileName}.txt` : 'script.txt';
+    downloadTextFile(content, fileName);
 };
 
 const downloadSRT = () => {
@@ -35,5 +54,6 @@ const downloadSRT = () => {
     const content = clips.map(clip => (
         `${clip.id}\n${clip.startTime} --> ${clip.endTime}\n${clip.text}\n\n`
     )).join('');
-    downloadTextFile(content, 'script.srt');
+    const fileName = originalFileName ? `${originalFileName}.srt` : 'script.srt';
+    downloadTextFile(content, fileName);
 };
