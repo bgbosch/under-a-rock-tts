@@ -1,5 +1,4 @@
 
-
 const createClipEditor = (clip) => {
     const clipEditor = document.createElement('div');
     clipEditor.className = 'clip-editor';
@@ -83,4 +82,3 @@ const organizeClipsIntoWindows = (clips) => {
         container.appendChild(clipWindow);
     });
 };
-

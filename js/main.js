@@ -1,5 +1,4 @@
 
-
 // Initialize voice selection
 document.getElementById('voice').addEventListener('change', (event) => {
     localStorage.setItem('selectedVoice', event.target.value);
@@ -16,7 +15,7 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
     const content = await file.text();
     currentClips = parseContent(content, file.name);
     
-    // Use the new function to organize clips into separate windows
+    // Use the function to organize clips into separate windows
     organizeClipsIntoWindows(currentClips);
 
     // Add Play All button if it doesn't exist
@@ -25,4 +24,3 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
         globalActions.insertBefore(createPlayAllButton(), globalActions.firstChild);
     }
 });
-
