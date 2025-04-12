@@ -1,4 +1,5 @@
 
+
 // Initialize voice selection
 document.getElementById('voice').addEventListener('change', (event) => {
     localStorage.setItem('selectedVoice', event.target.value);
@@ -24,3 +25,4 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
         globalActions.insertBefore(createPlayAllButton(), globalActions.firstChild);
     }
 });
+

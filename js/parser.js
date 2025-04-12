@@ -1,3 +1,4 @@
+
 const parseContent = (content, fileName) => {
     if (fileName.toLowerCase().endsWith('.srt')) {
         return parseSRT(content);
