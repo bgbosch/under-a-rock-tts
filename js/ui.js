@@ -1,7 +1,11 @@
+
 const createClipEditor = (clip) => {
     const clipEditor = document.createElement('div');
     clipEditor.className = 'clip-editor';
     clipEditor.innerHTML = `
+        <div class="clip-header">
+            <span class="clip-number">Clip #${clip.id}</span>
+        </div>
         <div class="time-inputs">
             <div class="time-input">
                 <label>Start Time</label>
@@ -55,4 +59,26 @@ const playAllClips = () => {
     };
 
     speakNext();
+};
+
+// Create a clip window container
+const createClipWindow = (clip) => {
+    const clipWindow = document.createElement('div');
+    clipWindow.className = 'clip-window';
+    
+    const clipEditor = createClipEditor(clip);
+    clipWindow.appendChild(clipEditor);
+    
+    return clipWindow;
+};
+
+// Organize clips into separate windows
+const organizeClipsIntoWindows = (clips) => {
+    const container = document.getElementById('clips-container');
+    container.innerHTML = '';
+    
+    clips.forEach(clip => {
+        const clipWindow = createClipWindow(clip);
+        container.appendChild(clipWindow);
+    });
 };

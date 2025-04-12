@@ -1,3 +1,4 @@
+
 /* Base styles */
 body {
     font-family: Arial, sans-serif;
@@ -40,14 +41,27 @@ h1 {
     border-radius: 4px;
 }
 
+/* Clip window styles */
+.clip-window {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.clip-header {
+    background-color: #f8f8f8;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    font-weight: bold;
+    color: #333;
+}
+
 /* Clip editor styles */
 .clip-editor {
     background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
     padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .time-inputs {
